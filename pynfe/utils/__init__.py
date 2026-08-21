@@ -1,5 +1,6 @@
 # *-* encoding: utf-8 *-*
 
+import re
 import codecs
 import os
 from unicodedata import normalize
@@ -21,12 +22,20 @@ except ImportError:
 # @memoize
 def so_numeros(texto) -> str:
     """
-    Retorna o texto informado mas somente os numeros
+    Retorna o texto informado sem separadores, preservando LETRAS em maiúsculo.
+
+    O nome é histórico. Desde a NT 2025.001 (CNPJ Alfanumérico) o CNPJ pode ter letras nas 8
+    primeiras posições da raiz, e esta função é aplicada justamente ao <CNPJ> do emitente, do
+    destinatário e da refNFe, além da montagem da chave de acesso — filtrar por `isdigit`
+    apagava as letras e produzia documento com CNPJ errado, autorizado pela SEFAZ.
+
+    Nos demais campos em que ela roda (CEP, fone, IE) o conteúdo é numérico, então preservar
+    alfanumérico é idêntico a filtrar dígitos: regressão zero.
 
     :param texto: String ou Inteiro a ser analisada
-    :return: String somente com números
+    :return: String sem pontuação, em maiúsculo
     """
-    return "".join(filter(str.isdigit, str(texto)))
+    return re.sub(r"[^0-9A-Za-z]", "", str(texto)).upper()
 
 
 # @memoize

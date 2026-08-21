@@ -546,7 +546,11 @@ class NotaFiscal(Entidade):
 
         weights = [2, 3, 4, 5, 6, 7, 8, 9]
         weights_size = len(weights)
-        key_numbers = [int(k) for k in key]
+        # NT 2025.001 (CNPJ Alfanumérico): o valor de cada posição é `ord(c) - 48` — para
+        # dígitos isso devolve o próprio número (idêntico ao `int(k)` de antes) e para letras
+        # dá A=17 … Z=42, que é a tabela da NT. Com `int(k)` a chave alfanumérica estourava
+        # ValueError no meio da emissão, depois de o número já ter sido reservado.
+        key_numbers = [ord(k) - 48 for k in key]
         key_numbers.reverse()
 
         key_sum = 0
