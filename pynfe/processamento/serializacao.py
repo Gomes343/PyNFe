@@ -2144,8 +2144,13 @@ class SerializacaoQrcode(object):
         lista_dia = re.findall(r"-\d{2}", str(data))
         dia = str(lista_dia[1])
         dia = dia[1:]
-        replacements = {"0": ""}
-        token = re.sub("([0])", lambda m: replacements[m.group()], token)
+        # cIdToken vai no QR "sem os zeros não significativos" (Manual de Padrões Técnicos do
+        # DANFE NFC-e), isto é: só os zeros à ESQUERDA. O código anterior apagava TODO zero do
+        # identificador, então 000010 virava 1 (e não 10) e 010203 virava 123 (e não 10203).
+        # Com o cIdToken errado o cHashQRCode sai errado — e o modo de falha é o pior possível:
+        # a SEFAZ AUTORIZA a nota, o cupom é impresso, e só o consumidor descobre, no caixa,
+        # que o QR não consulta nada.
+        token = str(token).lstrip("0") or "0"
 
         # VERSAO_QRCODE =2
         if online:
