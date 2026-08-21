@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import datetime
+import os
 import re
 
 import requests
@@ -580,7 +581,18 @@ class ComunicacaoSefaz(Comunicacao):
             response["SOAPAction"] = ""
         return response
 
+    #: Timeout padrão (segundos) das chamadas à SEFAZ. `timeout=None` no requests significa
+    #: ESPERAR PARA SEMPRE: uma SEFAZ pendurada travava o processo do emissor indefinidamente,
+    #: e num servidor single-worker isso derruba o sistema inteiro sem erro nenhum no log.
+    #: Ajustável por PYNFE_TIMEOUT.
+    TIMEOUT_PADRAO = 60.0
+
     def _post(self, url, xml, timeout=None):
+        if timeout is None:
+            try:
+                timeout = float(os.environ.get("PYNFE_TIMEOUT", self.TIMEOUT_PADRAO))
+            except (TypeError, ValueError):
+                timeout = self.TIMEOUT_PADRAO
         certificado_a1 = CertificadoA1(self.certificado)
         chave, cert = certificado_a1.separar_arquivo(self.certificado_senha, caminho=True)
         chave_cert = (cert, chave)
