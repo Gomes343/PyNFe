@@ -293,7 +293,11 @@ class SerializacaoXML(Serializacao):
         # Se a mercadoria se enquadrar em mais de uma codificação,
         # informar até 8 codificações principais.
         # etree.SubElement(prod, 'NVE').text = ''
-        # etree.SubElement(prod, 'CEST').text = produto_service.cest
+        # DISTRO GT: o CEST vinha COMENTADO (aqui e mais abaixo, depois do vUnCom — posição
+        # que o XSD recusaria). Sem ele, toda nota com ST (CSOSN 500) saía sem o código do
+        # segmento. Pelo leiaute 4.00 o <CEST> vem logo depois do NCM/NVE e antes do cBenef.
+        if produto_servico.cest:
+            etree.SubElement(prod, "CEST").text = so_numeros(produto_servico.cest)
         if produto_servico.cbenef:
             etree.SubElement(prod, "cBenef").text = produto_servico.cbenef
         etree.SubElement(prod, "CFOP").text = produto_servico.cfop
@@ -311,8 +315,7 @@ class SerializacaoXML(Serializacao):
         sujeição aos regimes de substituição tributária e de
         antecipação de recolhimento do ICMS.
         """
-        # if produto_servico.cest:
-        #    etree.SubElement(prod, 'CEST').text = produto_servico.cest
+        # (DISTRO GT: o <CEST> sai lá em cima, logo depois do NCM.)
         etree.SubElement(prod, "vProd").text = str("{:.2f}").format(
             produto_servico.valor_total_bruto or 0
         )
